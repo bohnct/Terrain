@@ -9,5 +9,11 @@ Bohn Ag Consulting. An installable phone/tablet version of the Terrain Analysis 
 
 Elevation files (`.tif`) are opened from the Files app. Nothing is uploaded.
 
+## Good to know
+- **Reopen**: the last map is kept on the phone; the start screen has a one-tap button to reopen it.
+- **Large files** are opened at lower detail (every 2nd or 3rd pixel) so they fit in the phone's memory. A badge under the file name and File information (the **i** button) show the detail used.
+- **My location** (arrow button): shows a blue dot where you are. The first time, iPhone asks for permission. If it was refused: Settings › Privacy & Security › Location Services.
+- **Pictures and drainage CSVs** open the share sheet: Save to Files, Messages, Mail, etc.
+
 ## Updating
-Change `CACHE` in `sw.js` (e.g. `tat-v2`) whenever you publish changes, so installed copies pick them up.
+Bump `CACHE` in `sw.js` and `APP_VERSION` in `index.html` (same number) whenever you publish changes. Installed copies pick the new version up the next time they are opened with a signal. The version shows on the start screen.
