@@ -10,7 +10,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Terrain">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+  // Home-screen app (iOS): flag it for the full-height CSS below, and apply the saved theme before first paint.
+  if (navigator.standalone) document.documentElement.setAttribute('data-standalone', '');
+  try { var t = localStorage.getItem('terrainTheme'); if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.setAttribute('data-theme', 'dark'); } catch (e) {}
+</script>
 <meta name="theme-color" content="#2e6b34">
 <!--
   Terrain Analysis Tool (Bohn Ag Consulting) - phone / installable (PWA) fork.
@@ -38,6 +43,37 @@
     --accent: #2e6b34;
     --accent-soft: #eaf2e6;
   }
+  /* Dark theme (eye menu > Theme); colours the panels, cards and controls */
+  :root[data-theme="dark"] {
+    --panel-bg: rgba(30, 32, 29, 0.94);
+    --panel-border: #464940;
+    --text: #ece9e1;
+    --text-dim: #a8a296;
+    --accent: #4c9a55;
+    --accent-soft: #2a3a2b;
+    color-scheme: dark;
+  }
+  /* :where keeps this weak, so hover and the green active states still win */
+  :root[data-theme="dark"] :where(.btn, .seg button, select, input[type="number"], .collapse-btn, .line-swatches button, .reopen-btn) {
+    background-color: #2a2c28; color: var(--text);
+  }
+  :root[data-theme="dark"] #profile-chart-wrap { background: #23251f; }
+  :root[data-theme="dark"] .reopen-btn { color: #8fd197; }
+  :root[data-theme="dark"] .btn.primary { color: #8fd197; }
+  :root[data-theme="dark"] .btn.primary:hover:not(:disabled) { color: #fff; }
+  :root[data-theme="dark"] .range-dim { background: rgba(30, 32, 29, 0.6); }
+  :root[data-theme="dark"] .map-label { background: rgba(30, 32, 29, 0.93); border-color: rgba(255,255,255,0.12); }
+  :root[data-theme="dark"] :is(.map-label, #profile-stats, #result-card) .warn { color: #ff8a80; }
+  :root[data-theme="dark"] :is(.map-label, #profile-stats, #result-card) .ok { color: #7fd88f; }
+  :root[data-theme="dark"] :is(.detail-note, .dsm-note) { color: #f0c776; background: #3a3020; border-color: #6a5630; }
+  :root[data-theme="dark"] #load-error { color: #ffb4ab; background: #3b1f1c; border-color: #6e3a34; }
+  :root[data-theme="dark"] .progress-track { background: #2f3a2f; }
+  :root[data-theme="dark"] .start-links a:hover { background: #33452f; }
+  :root[data-theme="dark"] #profile-chart text { fill: #a8a296; }
+  :root[data-theme="dark"] #profile-chart line:not(#profile-cursor) { stroke: #3c3f38; }
+  :root[data-theme="dark"] #profile-chart rect[stroke] { stroke: #464940; }
+  :root[data-theme="dark"] #profile-chart polyline[stroke="#5a3a1a"] { stroke: #e0b07a; }
+  :root[data-theme="dark"] #profile-chart polyline[stroke="#1f77b4"] { stroke: #6cb4ee; }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
@@ -49,6 +85,17 @@
   /* iOS home-screen apps: 100% can stop short of the bottom edge (a black strip
      under the map); the large viewport height always reaches the screen's edge */
   @supports (height: 100lvh) { html, body { height: 100lvh; } }
+  /* iOS home-screen app with the see-through status bar: the page is told the
+     screen is shorter than it is (by the status bar's height), so anything
+     sized to the screen stops short and leaves a black strip at the bottom.
+     Only 100lvh is the real screen height there, so the start screen and the
+     map app are fixed layers of exactly that height. Browser tabs: unchanged. */
+  @supports (height: 100lvh) {
+    @media (display-mode: standalone) {
+      body > #start, body > #app { position: fixed; left: 0; right: 0; top: 0; bottom: auto; height: 100lvh; }
+    }
+    html[data-standalone] body > #start, html[data-standalone] body > #app { position: fixed; left: 0; right: 0; top: 0; bottom: auto; height: 100lvh; }
+  }
   button { font-family: inherit; }
   [hidden] { display: none !important; }
 
@@ -536,19 +583,13 @@
   /* Logo (top-left): opens the menu with the file name, Open another file and file information */
   #brand {
     position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); z-index: 11;
-    display: flex; align-items: center; gap: 8px;
-    background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 24px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    padding: 5px 12px 5px 5px;
-    font-family: inherit; font-size: 15px; font-weight: 800; letter-spacing: 0.02em; color: var(--accent);
-    white-space: nowrap; cursor: pointer;
+    width: 44px; height: 44px; padding: 0; border: none; border-radius: 11px; background: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35); cursor: pointer;
   }
-  #brand img { display: block; width: 32px; height: 32px; border-radius: 9px; }
-  .brand-caret { font-size: 12px; color: var(--text-dim); transition: transform 0.2s ease; }
-  #brand.active .brand-caret { transform: rotate(180deg); }
-  /* screenshots: the logo sits under the caption, without the menu arrow */
-  body.shooting #brand { top: 52px; left: 16px; }
-  body.shooting .brand-caret { display: none; }
+  #brand img { display: block; width: 44px; height: 44px; border-radius: 11px; }
+  #brand.active { box-shadow: 0 0 0 3px var(--accent), 0 2px 10px rgba(0,0,0,0.35); }
+  /* screenshots: the logo sits under the caption */
+  body.shooting #brand { top: 52px; left: 16px; box-shadow: none; }
   #info-card { top: calc(64px + env(safe-area-inset-top, 0px)); bottom: auto; left: calc(12px + env(safe-area-inset-left, 0px)); right: auto; max-height: calc(100% - 150px); }
   #info-card .subtitle { font-size: 14px; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
   #btn-open-new { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; font-size: 14px; }
@@ -661,6 +702,9 @@
       border: none; border-radius: 21px; background: transparent; box-shadow: none;
       color: #3d3a33; font-size: 10px;
     }
+    :root[data-theme="dark"] #tool-rail { background: rgba(30, 32, 29, 0.72); border-color: rgba(255, 255, 255, 0.12); }
+    :root[data-theme="dark"] .rail-btn { color: #e4e0d7; }
+    :root[data-theme="dark"] .rail-btn.has-result { color: #8fd197; }
     .rail-btn svg { width: 20px; height: 20px; }
     .rail-btn:hover { background: transparent; }
     .rail-btn.active { background: var(--accent); color: #fff; border-color: transparent; }
@@ -853,7 +897,7 @@
     <div class="depth-legend" id="water-legend" hidden><span>Shallow</span><div class="bar"></div><span>2 m+ deep</span></div>
   </div>
 
-  <button id="brand" title="Menu: open another file, file information"><img src="icons/icon-180.png" alt=""><span>Bohn Ag Consulting</span><span class="brand-caret">&#9662;</span></button>
+  <button id="brand" title="Bohn Ag Consulting: open another file, file information"><img src="icons/icon-180.png" alt="Bohn Ag Consulting"></button>
   <button id="share-pill" hidden></button>
   <div id="toast" hidden></div>
   <button id="btn-locate" class="corner-btn" title="Show where I am">
@@ -934,6 +978,11 @@
       <button class="btn primary" id="btn-scale-to-view" title="Stretch the colours over just the area you are looking at" hidden>Auto Scale</button>
     </div>
     <div class="section card-sep"></div>
+    <div class="opt-label" style="margin-top:0"><span>Theme</span></div>
+    <div class="seg small" id="theme-toggle">
+      <button data-theme="light">&#9728;&#65038; Light</button>
+      <button data-theme="dark">&#9790; Dark</button>
+    </div>
     <div class="opt-label"><span>Colour scale</span></div>
     <div id="cmap-list"></div>
     <div class="opt-label"><span>Relief shading (Elevation view)</span><span id="relief-val">50%</span></div>
@@ -3980,7 +4029,7 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 10;
+const APP_VERSION = 11;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
@@ -4539,6 +4588,17 @@ $('exag-slider').addEventListener('input', (e) => {
   $('exag-val').textContent = e.target.value + '×';
   requestRender();
 });
+
+// ---- Light / dark theme (eye menu); remembered on the device ----
+function setTheme(theme) {
+  document.documentElement.toggleAttribute('data-theme', false);
+  if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  document.querySelectorAll('#theme-toggle button').forEach((b) => b.classList.toggle('active', b.dataset.theme === theme));
+  try { localStorage.setItem('terrainTheme', theme); } catch (e) { /* storage may be blocked */ }
+  if (map) { renderProfileChart(); requestRender(); }
+}
+document.querySelectorAll('#theme-toggle button').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.theme)));
+document.querySelectorAll('#theme-toggle button').forEach((b) => b.classList.toggle('active', b.dataset.theme === (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light')));
 
 // Pop-up cards: the eye menu (map view + appearance) and the logo menu (file).
 // One open at a time; a click anywhere else or Escape closes it.
@@ -5748,6 +5808,13 @@ function paintText(ctx, node, parent, ox, oy) {
 
 async function paintSvg(ctx, svg, x, y, w, h) {
   const clone = svg.cloneNode(true);
+  // CSS (e.g. the dark theme) restyles the chart; copy those colours into the copy
+  const src = svg.querySelectorAll('*'), dst = clone.querySelectorAll('*');
+  for (let i = 0; i < src.length; i++) {
+    const cs = getComputedStyle(src[i]);
+    if (src[i].hasAttribute('fill')) dst[i].setAttribute('fill', cs.fill);
+    if (src[i].hasAttribute('stroke')) dst[i].setAttribute('stroke', cs.stroke);
+  }
   clone.querySelectorAll('#profile-cursor, #profile-chart-hitarea').forEach((n) => n.remove());
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   clone.setAttribute('width', w);
@@ -5797,7 +5864,7 @@ async function paintDom(ctx, el, ox, oy, isRoot = true) {
   if (el.tagName.toLowerCase() === 'svg') { await paintSvg(ctx, el, r.left - ox, r.top - oy, r.width, r.height); return; }
   if (el.tagName.toLowerCase() === 'img') {
     if (el.complete && el.naturalWidth) {
-      ctx.save(); canvasRoundRect(ctx, r.left - ox, r.top - oy, r.width, r.height, 9); ctx.clip();
+      ctx.save(); canvasRoundRect(ctx, r.left - ox, r.top - oy, r.width, r.height, 11); ctx.clip();
       ctx.drawImage(el, r.left - ox, r.top - oy, r.width, r.height); ctx.restore();
     }
     return;
