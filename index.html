@@ -62,7 +62,7 @@
   :root[data-theme="dark"] #profile-chart-wrap { background: #23251f; }
   :root[data-theme="dark"] .reopen-btn { color: #8fd197; }
   :root[data-theme="dark"] .btn.primary { color: #8fd197; }
-  :root[data-theme="dark"] .btn.primary:hover:not(:disabled) { color: #fff; }
+  @media (hover: hover) { :root[data-theme="dark"] .btn.primary:hover:not(:disabled) { color: #fff; } }
   :root[data-theme="dark"] .range-dim { background: rgba(30, 32, 29, 0.6); }
   :root[data-theme="dark"] .map-label { background: rgba(30, 32, 29, 0.93); border-color: rgba(255,255,255,0.12); }
   :root[data-theme="dark"] :is(.map-label, #profile-stats, #result-card) .warn { color: #ff8a80; }
@@ -70,7 +70,7 @@
   :root[data-theme="dark"] :is(.detail-note, .dsm-note) { color: #f0c776; background: #3a3020; border-color: #6a5630; }
   :root[data-theme="dark"] #load-error { color: #ffb4ab; background: #3b1f1c; border-color: #6e3a34; }
   :root[data-theme="dark"] .progress-track { background: #2f3a2f; }
-  :root[data-theme="dark"] .start-links a:hover { background: #33452f; }
+  @media (hover: hover) { :root[data-theme="dark"] .start-links a:hover { background: #33452f; } }
   :root[data-theme="dark"] #profile-chart text { fill: #a8a296; }
   :root[data-theme="dark"] #profile-chart line:not(#profile-cursor) { stroke: #3c3f38; }
   :root[data-theme="dark"] #profile-chart rect[stroke] { stroke: #464940; }
@@ -131,7 +131,7 @@
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(46,107,52,0.35);
   }
-  .big-btn:hover { background: #38803f; }
+  @media (hover: hover) { .big-btn:hover { background: #38803f; } }
   .big-btn:disabled { opacity: 0.5; cursor: default; }
   .reopen-btn {
     display: block; width: 100%; margin-top: 10px; padding: 13px 14px;
@@ -156,7 +156,7 @@
     font-size: 13px; font-weight: 600; text-decoration: none; color: var(--accent);
     background: var(--accent-soft); border: 1px solid var(--panel-border); border-radius: 8px;
   }
-  .start-links a:hover { background: #dbe9d5; }
+  @media (hover: hover) { .start-links a:hover { background: #dbe9d5; } }
   #load-progress { margin-top: 18px; text-align: left; }
   #load-label { font-size: 13px; margin-bottom: 6px; }
   .progress-track { height: 10px; border-radius: 5px; background: #dde8d8; overflow: hidden; }
@@ -247,7 +247,7 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.35);
     cursor: ew-resize; touch-action: none;
   }
-  .lf-handle:hover { border-color: var(--accent); }
+  @media (hover: hover) { .lf-handle:hover { border-color: var(--accent); } }
   .lf-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); }
   .lf-legend b { color: var(--text); }
   .lf-min { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; color: var(--text-dim); }
@@ -274,7 +274,7 @@
     pointer-events: all;
     touch-action: none;
   }
-  .profile-point:hover { fill: #fff; }
+  @media (hover: hover) { .profile-point:hover { fill: #fff; } }
   .profile-point.point-start { fill: #2ecc71; }
   .profile-point.point-end { fill: #e74c3c; }
 
@@ -310,7 +310,7 @@
     font-size: 11px; font-weight: 600; cursor: pointer;
   }
   .rail-btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .rail-btn:hover { background: var(--accent-soft); }
+  @media (hover: hover) { .rail-btn:hover { background: var(--accent-soft); } }
   .rail-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
   /* tool closed but its results still on the map */
   .rail-btn.has-result { box-shadow: inset 0 -3px 0 var(--accent), 0 2px 10px rgba(0,0,0,0.3); }
@@ -334,7 +334,7 @@
     cursor: pointer; font-size: 13px; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
-  .collapse-btn:hover { background: var(--accent-soft); }
+  @media (hover: hover) { .collapse-btn:hover { background: var(--accent-soft); } }
   .collapse-btn .chevron { display: inline-block; transition: transform 0.2s ease; }
   .panel-body { overflow-y: auto; padding: 0 16px 16px; }
   /* Collapsed: shrink to just the title + button (ids, to beat #panel's fixed width) */
@@ -366,7 +366,7 @@
     cursor: pointer;
   }
   .seg button + button { border-left: 1px solid var(--panel-border); }
-  .seg button:hover { background: var(--accent-soft); }
+  @media (hover: hover) { .seg button:hover { background: var(--accent-soft); } }
   .seg button.active { background: var(--accent); color: #fff; }
   .seg.small button { padding: 6px 4px; font-size: 12px; font-weight: 600; }
 
@@ -393,10 +393,10 @@
     cursor: pointer;
     font-size: 12px;
   }
-  .btn:hover:not(:disabled) { background: var(--accent-soft); }
+  @media (hover: hover) { .btn:hover:not(:disabled) { background: var(--accent-soft); } }
   .btn:disabled { opacity: 0.45; cursor: default; }
   .btn.primary { border-color: var(--accent); color: var(--accent); font-weight: 600; }
-  .btn.primary:hover:not(:disabled) { background: var(--accent); color: #fff; }
+  @media (hover: hover) { .btn.primary:hover:not(:disabled) { background: var(--accent); color: #fff; } }
   #buttons { display: flex; gap: 8px; margin-top: 12px; }
   #buttons .btn { flex: 1; }
   #buttons .btn[hidden] { display: none; }
@@ -422,7 +422,8 @@
     cursor: ew-resize;
     touch-action: none;
   }
-  .range-handle:hover, .range-handle.active { border-color: var(--accent); }
+  .range-handle.active { border-color: var(--accent); }
+  @media (hover: hover) { .range-handle:hover { border-color: var(--accent); } }
   .range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); margin-top: 2px; }
   .range-values { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
   .range-values input[type="number"] {
@@ -504,7 +505,7 @@
     padding: 4px; border-radius: 5px; border: 1px solid transparent;
     cursor: pointer;
   }
-  .cmap-item:hover { background: var(--accent-soft); }
+  @media (hover: hover) { .cmap-item:hover { background: var(--accent-soft); } }
   .cmap-item.active { border-color: var(--accent); font-weight: 600; }
   .cmap-item .cmap-name { width: 78px; flex: none; }
   .cmap-item .cmap-bar { flex: 1; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.25); }
@@ -533,14 +534,16 @@
     color: var(--text);
     cursor: pointer;
   }
-  .corner-btn:hover, .corner-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  #btn-locate { right: 16px; }
-  #btn-autoscale { right: 64px; }
+  .corner-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (hover: hover) { .corner-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; } }
+  #btn-autoscale { right: 16px; }
   #btn-autoscale svg { display: block; }
-  #btn-settings { right: 112px; }
-  #btn-screenshot { right: 160px; }
+  #btn-settings { right: 64px; }
+  #btn-screenshot, #btn-locate { left: calc(16px + env(safe-area-inset-left, 0px)); bottom: auto; }
+  #btn-screenshot { top: calc(12px + env(safe-area-inset-top, 0px)); }
+  #btn-locate { top: calc(64px + env(safe-area-inset-top, 0px)); }
   #btn-screenshot svg, #btn-tilt svg { display: block; }
-  #btn-tilt { right: 208px; }
+  #btn-tilt { right: 112px; }
   #btn-locate svg { display: block; }
   #loc-dot {
     position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 4; pointer-events: none;
@@ -592,7 +595,9 @@
   /* Logo button (top of the right-hand column; follows the light/dark theme) */
   #brand { top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto; right: calc(16px + env(safe-area-inset-right, 0px)); padding: 0; color: var(--accent); font-family: inherit; }
   #brand svg { display: block; }
-  :root[data-theme="dark"] #brand:not(.active) { color: #8fd197; }
+  #brand.active { background: var(--panel-bg); border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); color: var(--accent); }
+  @media (hover: hover) { #brand:hover { background: var(--accent-soft); border-color: var(--panel-border); color: var(--accent); } }
+  :root[data-theme="dark"] #brand { color: #8fd197; }
   /* screenshots: the logo sits under the caption */
   body.shooting #brand { top: 52px; left: 16px; right: auto; }
   #info-card { top: calc(64px + env(safe-area-inset-top, 0px)); bottom: auto; right: calc(16px + env(safe-area-inset-right, 0px)); left: auto; max-height: calc(100% - 150px); }
@@ -625,13 +630,13 @@
     outline: 2px solid #1a1a1a;   /* shows the casing too */
   }
   .line-swatches button[data-c="black"] span { outline-color: #fff; box-shadow: 0 0 0 3px #bbb; }
-  .line-swatches button:hover { background: var(--accent-soft); }
+  @media (hover: hover) { .line-swatches button:hover { background: var(--accent-soft); } }
   .line-swatches button.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); }
   #settings-card .opt-label:first-of-type { margin-top: 0; }
   #settings-card label.check { display: flex; align-items: center; gap: 7px; cursor: pointer; }
   /* Distance bar: upright, under the buttons on the right */
   #scalebar {
-    position: absolute; bottom: 72px; right: calc(16px + env(safe-area-inset-right, 0px)); z-index: 10;
+    position: absolute; top: calc(116px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); z-index: 10;
     width: 44px; padding: 6px 0 9px;
     display: flex; flex-direction: column; align-items: center;
     background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 8px;
@@ -689,15 +694,16 @@
 
     /* Map buttons: a column down the top-right */
     .corner-btn { width: 44px; height: 44px; bottom: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-    #brand, #btn-tilt, #btn-screenshot, #btn-settings, #btn-autoscale, #btn-locate { right: calc(8px + var(--sar)); }
+    #brand, #btn-tilt, #btn-settings, #btn-autoscale { right: calc(8px + var(--sar)); }
     #brand { top: calc(8px + var(--sat)); }
     #btn-tilt { top: calc(60px + var(--sat)); }
-    #btn-screenshot { top: calc(112px + var(--sat)); }
-    #btn-settings { top: calc(164px + var(--sat)); }
-    #btn-autoscale { top: calc(216px + var(--sat)); }
-    #btn-locate { top: calc(268px + var(--sat)); }
-    #toast { top: calc(16px + var(--sat)); max-width: calc(100vw - 80px); transform: none; left: 12px; }
-    #scalebar { top: calc(324px + var(--sat)); bottom: auto; right: calc(8px + var(--sar)); z-index: 8; }
+    #btn-settings { top: calc(112px + var(--sat)); }
+    #btn-autoscale { top: calc(164px + var(--sat)); }
+    #btn-screenshot, #btn-locate { left: calc(8px + var(--sal)); right: auto; }
+    #btn-screenshot { top: calc(8px + var(--sat)); }
+    #btn-locate { top: calc(60px + var(--sat)); }
+    #toast { top: calc(16px + var(--sat)); max-width: calc(100vw - 132px); }
+    #scalebar { top: calc(112px + var(--sat)); bottom: auto; left: calc(8px + var(--sal)); right: auto; z-index: 8; }
 
     /* Tools: a floating, see-through bar; the map shows around and under it */
     #tool-rail {
@@ -739,15 +745,15 @@
       left: 8px; right: 8px; width: auto; max-width: none; z-index: 11;
       bottom: calc(var(--tabbar-h) + var(--sheet-h) + 16px);
       /* never taller than the gap between the button column and the sheet */
-      max-height: min(40%, calc(100% - var(--sat) - var(--tabbar-h) - var(--sheet-h) - 332px)); overflow-y: auto;
+      max-height: min(40%, calc(100% - var(--sat) - var(--tabbar-h) - var(--sheet-h) - 280px)); overflow-y: auto;
     }
-    #profile-chart { height: 110px; }
+    #profile-chart { height: 140px; }
 
     /* Settings / file info: sheets over the tab bar */
     .corner-card {
       left: calc(8px + var(--sal)); right: calc(8px + var(--sar)); bottom: calc(var(--tabbar-h) + 8px); width: auto; max-width: none; z-index: 14;
       /* stays below the button column on the right */
-      max-height: min(60%, calc(100% - var(--sat) - var(--tabbar-h) - 328px)); border-radius: 18px;
+      max-height: min(60%, calc(100% - var(--sat) - var(--tabbar-h) - 276px)); border-radius: 18px;
       padding: 14px 16px 16px;
       box-shadow: 0 6px 22px rgba(0,0,0,0.35);
     }
@@ -761,14 +767,13 @@
   @media (pointer: coarse) and (max-height: 500px) and (min-width: 561px) {
     #brand, #btn-tilt, #btn-screenshot, #btn-settings, #btn-autoscale, #btn-locate { top: calc(8px + var(--sat)); }
     #brand { right: calc(8px + var(--sar)); }
-    #btn-locate { right: calc(60px + var(--sar)); }
-    #btn-autoscale { right: calc(112px + var(--sar)); }
-    #btn-settings { right: calc(164px + var(--sar)); }
-    #btn-screenshot { right: calc(216px + var(--sar)); }
-    #btn-tilt { right: calc(268px + var(--sar)); }
+    #btn-tilt { right: calc(60px + var(--sar)); }
+    #btn-settings { right: calc(112px + var(--sar)); }
+    #btn-autoscale { right: calc(164px + var(--sar)); }
+    #btn-screenshot { left: calc(8px + var(--sal)); }
+    #btn-locate { left: calc(60px + var(--sal)); }
     #info-card { left: auto; right: calc(8px + var(--sar)); width: min(400px, 60vw); }
-    #scalebar { top: calc(60px + var(--sat)); right: calc(8px + var(--sar)); }
-    #result-card { right: calc(60px + var(--sar)); }
+    #scalebar { top: calc(60px + var(--sat)); left: calc(8px + var(--sal)); right: auto; }
     #profile-panel { right: auto; width: min(420px, 48vw); max-height: calc(100% - var(--tabbar-h) - 72px); }
     #result-card { left: auto; width: min(400px, calc(52vw - 24px)); bottom: calc(var(--tabbar-h) + 8px); max-height: calc(100% - var(--sat) - var(--tabbar-h) - 68px); }
     .corner-card { left: auto; width: min(420px, 60vw); max-height: calc(100% - var(--tabbar-h) - 72px); }
@@ -907,7 +912,7 @@
     <div id="result-title"></div>
     <div id="profile-stats"></div>
     <div id="profile-chart-wrap">
-      <svg id="profile-chart" preserveAspectRatio="none"></svg>
+      <svg id="profile-chart"></svg>
       <div id="profile-chart-empty"></div>
     </div>
     <div id="profile-hover-readout"></div>
@@ -4051,7 +4056,7 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 14;
+const APP_VERSION = 16;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
@@ -5030,6 +5035,21 @@ function renderToolResults() {
 
 // Distance/elevation chart. Samples may carry `bottom` (ditch bottom), in
 // which case it is drawn too, with cut (red) and fill (green) shaded.
+// Charts are drawn at their real on-screen size (1 unit = 1 pixel), so lines and
+// text keep their shape on any screen; fallback size when not laid out yet.
+function chartSize(svg, fallbackH) {
+  const W = Math.round(svg.clientWidth) || 300, H = Math.round(svg.clientHeight) || fallbackH;
+  return { W, H };
+}
+// Redraw when the chart's size changes (card shown, phone turned).
+let chartDrawnSize = '';
+new ResizeObserver(() => {
+  const svg = $('profile-chart'), key = svg.clientWidth + 'x' + svg.clientHeight;
+  if (!svg.clientWidth || key === chartDrawnSize) return;
+  chartDrawnSize = key;
+  if (map && svg.childElementCount) renderToolResults();
+}).observe($('profile-chart'));
+
 function drawProfileChart(samples, statsHtml) {
   const svg = $('profile-chart');
   const readoutEl = $('profile-hover-readout');
@@ -5044,8 +5064,8 @@ function drawProfileChart(samples, statsHtml) {
     if (hasBottom && !isNaN(s.bottom)) { if (s.bottom < lo) lo = s.bottom; if (s.bottom > hi) hi = s.bottom; }
   }
 
-  const W = 300, H = 170;
-  const padL = 40, padR = 8, padT = 10, padB = 20;
+  const { W, H } = chartSize(svg, 170);
+  const padL = 44, padR = 10, padT = 10, padB = 22;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const yTicks = niceTicks(lo, hi, 4);
   const yLo = yTicks[0], yHi = yTicks[yTicks.length - 1];
@@ -5063,12 +5083,12 @@ function drawProfileChart(samples, statsHtml) {
     if (t < yLo - 1e-6 || t > yHi + 1e-6) continue;
     const y = py(t);
     parts.push(`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL + plotW}" y2="${y.toFixed(1)}" stroke="#e5e0d5" stroke-width="1"/>`);
-    parts.push(`<text x="${padL - 4}" y="${(y + 3).toFixed(1)}" font-size="8" text-anchor="end" fill="#6b6357">${t.toFixed(yDecimals)}</text>`);
+    parts.push(`<text x="${padL - 4}" y="${(y + 3).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#6b6357">${t.toFixed(yDecimals)}</text>`);
   }
   for (const t of xTicks) {
     const x = px(t);
     const label = xInKm ? (t / 1000).toFixed(xDecimals) + ' km' : t.toFixed(xDecimals) + ' m';
-    parts.push(`<text x="${x.toFixed(1)}" y="${H - 6}" font-size="8" text-anchor="middle" fill="#6b6357">${label}</text>`);
+    parts.push(`<text x="${x.toFixed(1)}" y="${H - 6}" font-size="10.5" text-anchor="middle" fill="#6b6357">${label}</text>`);
   }
 
   if (hasBottom) {
@@ -5493,7 +5513,8 @@ function drawSlopeChart(s, lf) {
   const svg = $('profile-chart');
   $('profile-chart-empty').style.display = 'none';
   $('profile-hover-readout').textContent = '';
-  const W = 300, H = 150, padL = 34, padR = 8, padT = 8, padB = 20;
+  const { W, H } = chartSize(svg, 150);
+  const padL = 40, padR = 10, padT = 10, padB = 22;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const xMax = Math.min(30, Math.max(2, Math.ceil(s.p98 * 1.25)));
   const db = [0.1, 0.2, 0.25, 0.5, 1].find((b) => xMax / b <= 45) || 1;
@@ -5510,7 +5531,7 @@ function drawSlopeChart(s, lf) {
   for (const t of yTicks) {
     const y = py(t);
     parts.push(`<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL + plotW}" y2="${y.toFixed(1)}" stroke="#e5e0d5" stroke-width="1"/>`);
-    parts.push(`<text x="${padL - 4}" y="${(y + 3).toFixed(1)}" font-size="8" text-anchor="end" fill="#6b6357">${t.toFixed(tickDecimals(yTicks.step))}%</text>`);
+    parts.push(`<text x="${padL - 4}" y="${(y + 3).toFixed(1)}" font-size="10.5" text-anchor="end" fill="#6b6357">${t.toFixed(tickDecimals(yTicks.step))}%</text>`);
   }
   // Per-landform bar heights, for the stacked version
   const lfPct = lf ? lf.hist.map((h) => {
@@ -5536,9 +5557,9 @@ function drawSlopeChart(s, lf) {
   });
   const xTicks = niceTicks(0, xMax, 5).filter((t) => t <= xMax + 1e-6);
   for (const t of xTicks) {
-    parts.push(`<text x="${px(t).toFixed(1)}" y="${H - 6}" font-size="8" text-anchor="middle" fill="#6b6357">${t.toFixed(tickDecimals(niceTicks(0, xMax, 5).step))}%</text>`);
+    parts.push(`<text x="${px(t).toFixed(1)}" y="${H - 6}" font-size="10.5" text-anchor="middle" fill="#6b6357">${t.toFixed(tickDecimals(niceTicks(0, xMax, 5).step))}%</text>`);
   }
-  parts.push(`<text x="${padL + plotW}" y="${padT + 9}" font-size="8" text-anchor="end" fill="#6b6357">slope →</text>`);
+  parts.push(`<text x="${padL + plotW}" y="${padT + 9}" font-size="10.5" text-anchor="end" fill="#6b6357">slope →</text>`);
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = parts.join('');
 }
