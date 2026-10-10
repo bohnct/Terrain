@@ -42,6 +42,7 @@
     --text-dim: #6b6357;
     --accent: #2e6b34;
     --accent-soft: #eaf2e6;
+    --map-bg: #ffffff;        /* around the map (light theme: white) */
   }
   /* Dark theme (eye menu > Theme); colours the panels, cards and controls */
   :root[data-theme="dark"] {
@@ -51,6 +52,7 @@
     --text-dim: #a8a296;
     --accent: #4c9a55;
     --accent-soft: #2a3a2b;
+    --map-bg: #1c1c1c;
     color-scheme: dark;
   }
   /* :where keeps this weak, so hover and the green active states still win */
@@ -77,7 +79,7 @@
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
-    background: #1c1c1c;
+    background: var(--map-bg);
     font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
     color: var(--text);
     overflow: hidden;
@@ -179,12 +181,18 @@
     position: absolute; inset: 0;
     overflow: hidden;
     cursor: grab;
-    background: #1c1c1c;
+    background: var(--map-bg);
     touch-action: none;
   }
   #viewport.dragging { cursor: grabbing; }
   #viewport.profile-draw-mode { cursor: crosshair; }
   #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  /* light theme: a faint shade behind the (white) iPhone clock so it shows on white */
+  #viewport::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 0; height: calc(env(safe-area-inset-top, 0px) * 1.3);
+    background: linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0)); pointer-events: none;
+  }
+  :root[data-theme="dark"] #viewport::after { display: none; }
   #overlay {
     position: absolute; inset: 0; width: 100%; height: 100%;
     overflow: visible;
@@ -581,16 +589,13 @@
   .map-label .ok { color: #1b7a3a; font-weight: 600; }
   /* 3D view: flat-map overlays hide */
   /* Logo (top-left): opens the menu with the file name, Open another file and file information */
-  #brand {
-    position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); z-index: 11;
-    width: 44px; height: 44px; padding: 0; border: none; border-radius: 11px; background: none;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.35); cursor: pointer;
-  }
-  #brand img { display: block; width: 44px; height: 44px; border-radius: 11px; }
-  #brand.active { box-shadow: 0 0 0 3px var(--accent), 0 2px 10px rgba(0,0,0,0.35); }
+  /* Logo button (top of the right-hand column; follows the light/dark theme) */
+  #brand { top: calc(12px + env(safe-area-inset-top, 0px)); bottom: auto; right: calc(16px + env(safe-area-inset-right, 0px)); padding: 0; color: var(--accent); font-family: inherit; }
+  #brand svg { display: block; }
+  :root[data-theme="dark"] #brand:not(.active) { color: #8fd197; }
   /* screenshots: the logo sits under the caption */
-  body.shooting #brand { top: 52px; left: 16px; box-shadow: none; }
-  #info-card { top: calc(64px + env(safe-area-inset-top, 0px)); bottom: auto; left: calc(12px + env(safe-area-inset-left, 0px)); right: auto; max-height: calc(100% - 150px); }
+  body.shooting #brand { top: 52px; left: 16px; right: auto; }
+  #info-card { top: calc(64px + env(safe-area-inset-top, 0px)); bottom: auto; right: calc(16px + env(safe-area-inset-right, 0px)); left: auto; max-height: calc(100% - 150px); }
   #info-card .subtitle { font-size: 14px; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
   #btn-open-new { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; font-size: 14px; }
   .card-sep { margin-top: 12px; padding: 0; }
@@ -624,12 +629,20 @@
   .line-swatches button.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); }
   #settings-card .opt-label:first-of-type { margin-top: 0; }
   #settings-card label.check { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+  /* Distance bar: upright, under the buttons on the right */
   #scalebar {
-    position: absolute; bottom: 16px; right: 256px; z-index: 10;
+    position: absolute; bottom: 72px; right: calc(16px + env(safe-area-inset-right, 0px)); z-index: 10;
+    width: 44px; padding: 6px 0 9px;
+    display: flex; flex-direction: column; align-items: center;
     background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 8px;
-    padding: 8px 12px; font-size: 11px; color: var(--text-dim); text-align: center;
+    font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-align: center; white-space: nowrap;
   }
-  #scalebar .bar { height: 4px; background: var(--text); border-radius: 2px; margin-top: 4px; }
+  #scalebar .bar { position: relative; width: 3px; background: var(--text); border-radius: 2px; margin-top: 6px; }
+  #scalebar .bar::before, #scalebar .bar::after {
+    content: ''; position: absolute; left: -4px; width: 11px; height: 2px; border-radius: 1px; background: var(--text);
+  }
+  #scalebar .bar::before { top: 0; }
+  #scalebar .bar::after { bottom: 0; }
   #share-pill {
     position: absolute; left: 50%; transform: translateX(-50%); z-index: 20;
     bottom: calc(var(--tabbar-h, 0px) + var(--sheet-h, 0px) + 16px);
@@ -672,19 +685,19 @@
     .start-card { padding: 22px 18px 18px; }
     .start-card .small { display: none; }   /* no drag-and-drop on a phone */
 
-    #brand { top: calc(8px + var(--sat)); left: calc(8px + var(--sal)); }
     .panel-header { padding: 10px 10px 8px 14px; }
 
     /* Map buttons: a column down the top-right */
     .corner-btn { width: 44px; height: 44px; bottom: auto; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
-    #btn-tilt, #btn-screenshot, #btn-settings, #btn-autoscale, #btn-locate { right: calc(8px + var(--sar)); }
-    #btn-locate { top: calc(216px + var(--sat)); }
-    #toast { top: calc(72px + var(--sat)); }
-    #btn-tilt { top: calc(8px + var(--sat)); }
-    #btn-screenshot { top: calc(60px + var(--sat)); }
-    #btn-settings { top: calc(112px + var(--sat)); }
-    #btn-autoscale { top: calc(164px + var(--sat)); }
-    #scalebar { top: calc(60px + var(--sat)); bottom: auto; left: calc(8px + var(--sal)); right: auto; padding: 5px 10px; z-index: 8; }
+    #brand, #btn-tilt, #btn-screenshot, #btn-settings, #btn-autoscale, #btn-locate { right: calc(8px + var(--sar)); }
+    #brand { top: calc(8px + var(--sat)); }
+    #btn-tilt { top: calc(60px + var(--sat)); }
+    #btn-screenshot { top: calc(112px + var(--sat)); }
+    #btn-settings { top: calc(164px + var(--sat)); }
+    #btn-autoscale { top: calc(216px + var(--sat)); }
+    #btn-locate { top: calc(268px + var(--sat)); }
+    #toast { top: calc(16px + var(--sat)); max-width: calc(100vw - 80px); transform: none; left: 12px; }
+    #scalebar { top: calc(324px + var(--sat)); bottom: auto; right: calc(8px + var(--sar)); z-index: 8; }
 
     /* Tools: a floating, see-through bar; the map shows around and under it */
     #tool-rail {
@@ -704,12 +717,12 @@
     }
     :root[data-theme="dark"] #tool-rail { background: rgba(30, 32, 29, 0.72); border-color: rgba(255, 255, 255, 0.12); }
     :root[data-theme="dark"] .rail-btn { color: #e4e0d7; }
-    :root[data-theme="dark"] .rail-btn.has-result { color: #8fd197; }
+    :root[data-theme="dark"] .rail-btn.has-result { background: rgba(76, 154, 85, 0.22); color: #8fd197; box-shadow: inset 0 0 0 1.5px rgba(143, 209, 151, 0.45); }
     .rail-btn svg { width: 20px; height: 20px; }
     .rail-btn:hover { background: transparent; }
     .rail-btn.active { background: var(--accent); color: #fff; border-color: transparent; }
-    .rail-btn.has-result { box-shadow: none; color: var(--accent); }
-    .rail-btn.has-result::after { content: ''; position: absolute; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+    /* tool closed but its results still on the map: a soft green pill (open = solid green) */
+    .rail-btn.has-result { background: rgba(46, 107, 52, 0.16); color: var(--accent); box-shadow: inset 0 0 0 1.5px rgba(46, 107, 52, 0.45); }
 
     /* Tool controls: a sheet docked on the tab bar */
     #profile-panel {
@@ -726,7 +739,7 @@
       left: 8px; right: 8px; width: auto; max-width: none; z-index: 11;
       bottom: calc(var(--tabbar-h) + var(--sheet-h) + 16px);
       /* never taller than the gap between the button column and the sheet */
-      max-height: min(40%, calc(100% - var(--sat) - var(--tabbar-h) - var(--sheet-h) - 280px)); overflow-y: auto;
+      max-height: min(40%, calc(100% - var(--sat) - var(--tabbar-h) - var(--sheet-h) - 332px)); overflow-y: auto;
     }
     #profile-chart { height: 110px; }
 
@@ -734,7 +747,7 @@
     .corner-card {
       left: calc(8px + var(--sal)); right: calc(8px + var(--sar)); bottom: calc(var(--tabbar-h) + 8px); width: auto; max-width: none; z-index: 14;
       /* stays below the button column on the right */
-      max-height: min(60%, calc(100% - var(--sat) - var(--tabbar-h) - 276px)); border-radius: 18px;
+      max-height: min(60%, calc(100% - var(--sat) - var(--tabbar-h) - 328px)); border-radius: 18px;
       padding: 14px 16px 16px;
       box-shadow: 0 6px 22px rgba(0,0,0,0.35);
     }
@@ -746,14 +759,16 @@
   /* Phone held sideways: map buttons in a row at the top-right, tool controls
      on the left and results on the right, side by side above the tab bar. */
   @media (pointer: coarse) and (max-height: 500px) and (min-width: 561px) {
-    #btn-tilt, #btn-screenshot, #btn-settings, #btn-autoscale, #btn-locate { top: calc(8px + var(--sat)); }
-    #btn-locate { right: calc(8px + var(--sar)); }
-    #btn-autoscale { right: calc(60px + var(--sar)); }
-    #btn-settings { right: calc(112px + var(--sar)); }
-    #btn-screenshot { right: calc(164px + var(--sar)); }
-    #btn-tilt { right: calc(216px + var(--sar)); }
-    #info-card { right: auto; width: min(400px, 60vw); }
-    #scalebar { top: calc(8px + var(--sat)); left: auto; right: calc(268px + var(--sar)); }
+    #brand, #btn-tilt, #btn-screenshot, #btn-settings, #btn-autoscale, #btn-locate { top: calc(8px + var(--sat)); }
+    #brand { right: calc(8px + var(--sar)); }
+    #btn-locate { right: calc(60px + var(--sar)); }
+    #btn-autoscale { right: calc(112px + var(--sar)); }
+    #btn-settings { right: calc(164px + var(--sar)); }
+    #btn-screenshot { right: calc(216px + var(--sar)); }
+    #btn-tilt { right: calc(268px + var(--sar)); }
+    #info-card { left: auto; right: calc(8px + var(--sar)); width: min(400px, 60vw); }
+    #scalebar { top: calc(60px + var(--sat)); right: calc(8px + var(--sar)); }
+    #result-card { right: calc(60px + var(--sar)); }
     #profile-panel { right: auto; width: min(420px, 48vw); max-height: calc(100% - var(--tabbar-h) - 72px); }
     #result-card { left: auto; width: min(400px, calc(52vw - 24px)); bottom: calc(var(--tabbar-h) + 8px); max-height: calc(100% - var(--sat) - var(--tabbar-h) - 68px); }
     .corner-card { left: auto; width: min(420px, 60vw); max-height: calc(100% - var(--tabbar-h) - 72px); }
@@ -776,9 +791,11 @@
     <p class="small">or drag files here &middot; select several tiles to join them</p>
     <div class="start-links">
       <a href="https://open.canada.ca/openmap/en.html#957782bf-847c-4644-a757-e383c0057995" target="_blank" rel="noopener"
-         title="Government of Canada map viewer: find your area and download its elevation tiles (DTM / DSM .tif)">&#128506; Find &amp; download elevation maps</a>
+         title="Government of Canada map viewer: find your area and download its elevation tiles (DTM / DSM .tif)">Find &amp; download elevation maps</a>
+      <a href="https://maps.canada.ca/czs/index-en.html" target="_blank" rel="noopener"
+         title="Clip Zip Ship (Natural Resources Canada): draw your own area and download just that piece of the elevation data">Download an exact area (Clip Zip Ship)</a>
       <a href="https://open.canada.ca/data/en/dataset/957782bf-847c-4644-a757-e383c0057995" target="_blank" rel="noopener"
-         title="High Resolution Digital Elevation Model (HRDEM) - Natural Resources Canada">&#8505; About the government elevation data</a>
+         title="High Resolution Digital Elevation Model (HRDEM) - Natural Resources Canada">About the government elevation data</a>
     </div>
     <div id="load-progress" hidden>
       <div id="load-label">Reading&hellip;</div>
@@ -897,7 +914,13 @@
     <div class="depth-legend" id="water-legend" hidden><span>Shallow</span><div class="bar"></div><span>2 m+ deep</span></div>
   </div>
 
-  <button id="brand" title="Bohn Ag Consulting: open another file, file information"><img src="icons/icon-180.png" alt="Bohn Ag Consulting"></button>
+  <button id="brand" class="corner-btn" title="Bohn Ag Consulting: open another file, file information">
+    <svg viewBox="0 0 44 44" width="42" height="42" aria-hidden="true">
+      <path d="M-2 8c8-4 14 4 23 0s15-4 25 0M-2 39c9-4 15 3 24-1s14-3 24 0M3 30c6-3 10 2 17 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-opacity="0.3"/>
+      <text x="22" y="21" text-anchor="middle" font-size="12.5" font-weight="800" fill="currentColor">Bohn</text>
+      <text x="22" y="33.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="currentColor">Ag</text>
+    </svg>
+  </button>
   <button id="share-pill" hidden></button>
   <div id="toast" hidden></div>
   <button id="btn-locate" class="corner-btn" title="Show where I am">
@@ -906,7 +929,7 @@
     </svg>
   </button>
   <div id="status"></div>
-  <div id="scalebar"><span id="scale-label">&mdash;</span><div class="bar" id="scale-bar-inner" style="width:80px"></div></div>
+  <div id="scalebar"><span id="scale-label">&mdash;</span><div class="bar" id="scale-bar-inner" style="height:80px"></div></div>
   <button id="btn-tilt" class="corner-btn" title="Tilt the map into a 3D view">
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M2.5 17.5l5-9h9l5 9z"/>
@@ -958,7 +981,7 @@
 
     <div class="section" id="color-section" hidden>
       <div class="section-title">Elevation colours</div>
-      <div id="range-track-wrap" title="Double-click to change the colour scale">
+      <div id="range-track-wrap" title="Double-tap the colour bar to change the colour scale">
         <div id="range-gradient"></div>
         <div class="range-dim" id="dim-left"></div>
         <div class="range-dim" id="dim-right"></div>
@@ -983,8 +1006,6 @@
       <button data-theme="light">&#9728;&#65038; Light</button>
       <button data-theme="dark">&#9790; Dark</button>
     </div>
-    <div class="opt-label"><span>Colour scale</span></div>
-    <div id="cmap-list"></div>
     <div class="opt-label"><span>Relief shading (Elevation view)</span><span id="relief-val">50%</span></div>
     <input type="range" id="relief-slider" min="0" max="100" value="50">
     <div class="opt-label"><span>Contour line strength</span><span id="contour-alpha-val">85%</span></div>
@@ -3668,7 +3689,8 @@ function render() {
   const cw = Math.max(1, Math.round(canvas.clientWidth * dpr)), ch = Math.max(1, Math.round(canvas.clientHeight * dpr));
   if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; }
   gl.viewport(0, 0, cw, ch);
-  gl.clearColor(0.11, 0.11, 0.11, 1);
+  const bg = document.documentElement.getAttribute('data-theme') === 'dark' ? 0.11 : 1;   // white around the map in the light theme
+  gl.clearColor(bg, bg, bg, 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.disable(gl.DEPTH_TEST);
   if (!levels || !map) return;
@@ -4029,7 +4051,7 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 11;
+const APP_VERSION = 14;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
@@ -4240,7 +4262,7 @@ function updateScaleBar() {
   const niceSteps = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000, 50000];
   let chosen = niceSteps[0];
   for (const s of niceSteps) { if (s <= groundMeters) chosen = s; }
-  $('scale-bar-inner').style.width = (chosen / mPerScreenPx).toFixed(1) + 'px';
+  $('scale-bar-inner').style.height = (chosen / mPerScreenPx).toFixed(1) + 'px';
   $('scale-label').textContent = chosen >= 1000 ? (chosen / 1000) + ' km' : chosen + ' m';
 }
 
@@ -4419,11 +4441,9 @@ function fillCmapList(container, onPick) {
     container.appendChild(item);
   });
 }
-fillCmapList($('cmap-list'), (name) => setColormap(name));
 
 function setColormap(name) {
   settings.colormap = name;
-  $('cmap-list').querySelectorAll('.cmap-item').forEach((el) => el.classList.toggle('active', el.dataset.name === name));
   if (gl) setLut(getLut(name));
   buildGradientCss();
   applyToolLineColors();
@@ -4456,11 +4476,16 @@ function openColormapPicker() {
   fillCmapList(list, (name) => { closeColormapPicker(); setColormap(name); });
   picker.appendChild(list);
   document.body.appendChild(picker);
+  // below the colour bar if there's room, otherwise above it
   const r = $('range-track-wrap').getBoundingClientRect();
-  const top = Math.min(r.bottom + 4, window.innerHeight - 120);
   picker.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 258)) + 'px';
-  picker.style.top = top + 'px';
-  picker.style.maxHeight = (window.innerHeight - top - 12) + 'px';
+  if (window.innerHeight - r.bottom - 16 >= 220) {
+    picker.style.top = (r.bottom + 4) + 'px';
+    picker.style.maxHeight = (window.innerHeight - r.bottom - 16) + 'px';
+  } else {
+    picker.style.bottom = (window.innerHeight - r.top + 4) + 'px';
+    picker.style.maxHeight = Math.max(160, r.top - 16) + 'px';
+  }
   // Capture phase so it also closes when the click lands on the map.
   document.addEventListener('pointerdown', onPickerOutsideDown, true);
   document.addEventListener('keydown', onPickerKey, true);
@@ -4468,6 +4493,14 @@ function openColormapPicker() {
 $('range-track-wrap').addEventListener('dblclick', (e) => {
   if (e.target.closest('.range-handle')) return;
   openColormapPicker();
+});
+// Touch: two quick taps on the bar (phones don't reliably send dblclick)
+let lastBarTap = { t: 0, x: 0 };
+$('range-track-wrap').addEventListener('pointerup', (e) => {
+  if (e.pointerType === 'mouse' || e.target.closest('.range-handle')) return;
+  const now = performance.now();
+  if (now - lastBarTap.t < 400 && Math.abs(e.clientX - lastBarTap.x) < 30) { lastBarTap.t = 0; openColormapPicker(); }
+  else lastBarTap = { t: now, x: e.clientX };
 });
 
 // ---- Colour range control (draggable min/max) ----
@@ -5973,7 +6006,7 @@ function paintDecorations(ctx, W, H) {
 
   // Scale bar (bottom-right)
   const label = $('scale-label').textContent;
-  const barW = parseFloat($('scale-bar-inner').style.width) || 80;
+  const barW = parseFloat($('scale-bar-inner').style.height) || 80;   // drawn across in pictures
   // (left out of 3D pictures: distances vary across a tilted view)
   const tilted = settings.tilt3d;
   const sbW = tilted ? 0 : Math.max(barW, 40) + 24, sbH = 50;   // same height as the colour legend beside it
@@ -6476,7 +6509,7 @@ async function rememberedFiles() {
 function showReopen(names) {
   const btn = $('btn-reopen');
   btn.hidden = !names.length;
-  btn.textContent = '↻ ' + (names.length === 1 ? names[0] : `${names.length} tiles: ${names[0]}…`);
+  btn.textContent = 'Reopen ' + (names.length === 1 ? names[0] : `${names.length} tiles (${names[0]}…)`);
 }
 $('btn-reopen').addEventListener('click', async () => {
   $('btn-reopen').disabled = true;
