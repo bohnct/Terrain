@@ -49,6 +49,13 @@
   /* iOS home-screen apps: 100% can stop short of the bottom edge (a black strip
      under the map); the large viewport height always reaches the screen's edge */
   @supports (height: 100lvh) { html, body { height: 100lvh; } }
+  /* ...and in some iOS versions it is short by about the status bar's height
+     even so. --vh-fix (set from JS) is that missing strip; the start screen and
+     the map app are stretched over it so they reach the real bottom edge. */
+  body > #start, body > #app {
+    position: fixed; left: 0; top: 0; right: 0; bottom: auto;
+    height: calc(100% + var(--vh-fix, 0px));
+  }
   button { font-family: inherit; }
   [hidden] { display: none !important; }
 
@@ -3982,10 +3989,24 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 8;
+const APP_VERSION = 9;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
+// iOS home-screen app bug: with the see-through status bar the page can be
+// told the screen is shorter than it is, leaving a black strip at the bottom.
+// Measure the gap (screen height minus the page's height) and cover it.
+function fixStandaloneHeight() {
+  const standalone = navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  const portrait = window.innerHeight >= window.innerWidth;
+  const full = portrait ? Math.max(screen.width, screen.height) : Math.min(screen.width, screen.height);
+  const gap = standalone ? full - document.documentElement.clientHeight : 0;
+  document.documentElement.style.setProperty('--vh-fix', (gap > 0 && gap < 150 ? gap : 0) + 'px');
+}
+fixStandaloneHeight();
+window.addEventListener('resize', fixStandaloneHeight);
+window.addEventListener('orientationchange', () => setTimeout(fixStandaloneHeight, 300));
+
 const PHONE = window.matchMedia('(max-width: 760px), (pointer: coarse) and (max-height: 500px)');
 const POINT_R = window.matchMedia('(pointer: coarse)').matches ? 10 : 6;   // tool point size, screen px
 
