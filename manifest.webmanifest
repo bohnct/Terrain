@@ -1,0 +1,16 @@
+{
+  "name": "Terrain Analysis Tool",
+  "short_name": "Terrain",
+  "description": "LiDAR elevation, drainage and water analysis for your fields. Bohn Ag Consulting.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1c1c1c",
+  "theme_color": "#2e6b34",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
