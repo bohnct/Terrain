@@ -1,5 +1,5 @@
 // Offline cache for the Terrain Analysis Tool. Bump CACHE to ship an update.
-const CACHE = 'tat-v1';
+const CACHE = 'tat-v2';
 const FILES = [
   './',
   './index.html',
