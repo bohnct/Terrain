@@ -809,7 +809,10 @@
     <p class="lead">View your land's elevation, contours and drainage paths.</p>
     <button id="btn-open" class="big-btn">Open elevation file (.tif)</button>
     <button id="btn-reopen" class="reopen-btn" hidden></button>
-    <input type="file" id="file-input" accept=".tif,.tiff,image/tiff" multiple hidden>
+    <!-- No accept filter: in the home-screen app iOS applies it strictly, and Google Drive
+         (and some other places in Files) do not label GeoTIFFs as TIFF images, so they
+         were refused as "not supported". parseTiff checks the file and explains if it is not a .tif. -->
+    <input type="file" id="file-input" multiple hidden>
     <p class="small">or drag files here &middot; select several tiles to join them</p>
     <div class="start-links">
       <a href="https://open.canada.ca/openmap/en.html#957782bf-847c-4644-a757-e383c0057995" target="_blank" rel="noopener"
@@ -4073,7 +4076,7 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 21;
+const APP_VERSION = 22;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
