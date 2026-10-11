@@ -43,6 +43,7 @@
     --accent: #2e6b34;
     --accent-soft: #eaf2e6;
     --map-bg: #ffffff;        /* around the map (light theme: white) */
+    --btn-bg: rgba(255, 255, 255, 0.6);   /* map buttons and bars: frosted, the map shows through */
   }
   /* Dark theme (eye menu > Theme); colours the panels, cards and controls */
   :root[data-theme="dark"] {
@@ -53,6 +54,7 @@
     --accent: #4c9a55;
     --accent-soft: #2a3a2b;
     --map-bg: #1c1c1c;
+    --btn-bg: rgba(30, 32, 29, 0.55);
     color-scheme: dark;
   }
   /* :where keeps this weak, so hover and the green active states still win */
@@ -536,7 +538,8 @@
     position: absolute; bottom: 16px; z-index: 11;
     width: 40px; height: 40px;
     display: flex; align-items: center; justify-content: center;
-    background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 8px;
+    background: var(--btn-bg); border: 1px solid var(--panel-border); border-radius: 8px;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
     color: var(--text);
     cursor: pointer;
   }
@@ -579,7 +582,18 @@
     box-shadow: 0 4px 18px rgba(0,0,0,0.35);
     padding: 10px 12px; font-size: 12px;
   }
-  #result-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  #result-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; padding-right: 40px; min-height: 18px; }
+  /* collapse button: folds the card to its title so the map can be seen */
+  .card-toggle {
+    position: absolute; top: 6px; right: 6px; width: 32px; height: 28px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--panel-border); border-radius: 6px; color: var(--text); cursor: pointer;
+  }
+  .card-toggle svg { transition: transform 0.15s ease; }
+  #result-card.collapsed .card-toggle svg { transform: rotate(180deg); }
+  #result-card.collapsed > :not(#result-title):not(.card-toggle) { display: none !important; }
+  #result-card.collapsed #result-title { margin-bottom: 0; }
+  body.shooting .card-toggle { display: none; }
   #result-card #profile-stats { margin-bottom: 6px; }
   #result-card #profile-stats:empty { display: none; }
   #result-card #profile-hover-readout:empty { display: none; }
@@ -642,7 +656,8 @@
     position: absolute; top: calc(116px + env(safe-area-inset-top, 0px)); left: calc(16px + env(safe-area-inset-left, 0px)); z-index: 10;
     width: 44px; padding: 6px 0 9px;
     display: flex; flex-direction: column; align-items: center;
-    background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 8px;
+    background: var(--btn-bg); border: 1px solid var(--panel-border); border-radius: 8px;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
     font-size: 10.5px; font-weight: 600; color: var(--text-dim); text-align: center; white-space: nowrap;
   }
   #scalebar .bar { position: relative; width: 3px; background: var(--text); border-radius: 2px; margin-top: 6px; }
@@ -686,7 +701,7 @@
       --sal: env(safe-area-inset-left, 0px);
       --sar: env(safe-area-inset-right, 0px);
       --bar-gap: max(10px, calc(var(--sab) - 14px));   /* floating bar sits just above the home indicator */
-      --tabbar-h: calc(var(--bar-gap) + 58px);           /* screen kept clear below the bar's top */
+      --tabbar-h: calc(var(--bar-gap) + 60px);           /* screen kept clear below the bar's top */
       --sheet-h: 0px;          /* set from JS: height of the open tool sheet */
     }
     #start { padding-top: calc(16px + var(--sat)); padding-bottom: calc(16px + var(--sab)); }
@@ -713,15 +728,15 @@
       top: auto; bottom: var(--bar-gap); z-index: 13;
       left: calc(12px + var(--sal)); right: calc(12px + var(--sar));
       max-width: 480px; margin: 0 auto;
-      flex-direction: row; gap: 2px; height: 50px; padding: 4px;
-      background: var(--panel-bg);
+      flex-direction: row; gap: 2px; height: 52px; padding: 4px;
+      background: var(--btn-bg);
       border: 1px solid var(--panel-border); border-radius: 8px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
       backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
     }
     .rail-btn {
       position: relative; flex: 1; width: auto; height: 42px; gap: 1px;
-      border: none; border-radius: 5px; background: transparent; box-shadow: none;
+      border: none; border-radius: 4px; background: transparent; box-shadow: none;   /* = bar radius minus its padding */
       color: #3d3a33; font-size: 10px;
     }
     :root[data-theme="dark"] .rail-btn { color: #e4e0d7; }
@@ -911,6 +926,7 @@
   <!-- Tool results live outside the Tools panel (labels on the map + this
        card), so screenshots show the results without the controls. -->
   <div id="result-card" hidden>
+    <button class="card-toggle" id="result-toggle" title="Hide / show the details"><svg class="ico ico-only" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div id="result-title"></div>
     <div id="profile-stats"></div>
     <div id="profile-chart-wrap">
@@ -4057,7 +4073,7 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 20;
+const APP_VERSION = 21;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
@@ -4638,6 +4654,12 @@ function setTheme(theme) {
 }
 document.querySelectorAll('#theme-toggle button').forEach((b) => b.addEventListener('click', () => setTheme(b.dataset.theme)));
 document.querySelectorAll('#theme-toggle button').forEach((b) => b.classList.toggle('active', b.dataset.theme === (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light')));
+
+// Results card: fold to its title (e.g. to look at the landform map) and back; remembered while the app is open.
+$('result-toggle').addEventListener('click', () => {
+  $('result-card').classList.toggle('collapsed');
+  positionMapLabels();
+});
 
 // Pop-up cards: the eye menu (map view + appearance) and the logo menu (file).
 // One open at a time; a click anywhere else or Escape closes it.
