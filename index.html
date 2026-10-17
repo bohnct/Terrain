@@ -578,6 +578,14 @@
     position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);
     border-radius: 50%; background: rgba(26,115,232,0.15); border: 1px solid rgba(26,115,232,0.5);
   }
+  /* direction of travel: a 50° wedge fading out from the dot (rotated / sized in updateLocDot) */
+  .loc-cone {
+    position: absolute; left: 0; top: 0;
+    background: conic-gradient(from -25deg, rgba(26,115,232,0.6) 0deg 50deg, transparent 50deg);
+    -webkit-mask-image: radial-gradient(closest-side, #000 20%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 20%, transparent 100%);
+    transition: width 0.4s ease, height 0.4s ease;
+  }
   #toast {
     position: absolute; left: 50%; top: calc(16px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 25;
     max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 10px;
@@ -606,6 +614,9 @@
   #result-card.collapsed > :not(#result-title):not(.card-toggle) { display: none !important; }
   #result-card.collapsed #result-title { margin-bottom: 0; }
   body.shooting .card-toggle { display: none; }
+  #point-info { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 13px; margin: 2px 0 2px; }
+  #point-info .k { color: var(--text-dim); }
+  #point-info .v { font-weight: 600; font-variant-numeric: tabular-nums; }
   #result-card #profile-stats { margin-bottom: 6px; }
   #result-card #profile-stats:empty { display: none; }
   #result-card #profile-hover-readout:empty { display: none; }
@@ -631,12 +642,12 @@
   body.shooting #brand { top: 52px; left: 16px; right: auto; }
   #info-card { top: calc(64px + env(safe-area-inset-top, 0px)); bottom: auto; right: calc(16px + env(safe-area-inset-right, 0px)); left: auto; max-height: calc(100% - 150px); }
   #info-card .subtitle { font-size: 14px; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
-  #btn-open-new { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; font-size: 14px; }
+  #btn-home { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; font-size: 14px; }
   .card-sep { margin-top: 12px; padding: 0; }
   #tool-prompt { font-size: 12px; color: var(--text-dim); }
   #tool-prompt:empty { display: none; }
   #btn-settings svg { display: block; }
-  #btn-open-new svg { display: block; flex: none; }
+  #btn-home svg { display: block; flex: none; }
   .corner-card {
     position: absolute; bottom: 64px; right: 16px; z-index: 11;
     width: 320px; max-width: calc(100vw - 32px);
@@ -871,12 +882,14 @@
     <canvas id="gl"></canvas>
     <svg id="overlay"><g id="overlay-g"></g></svg>
     <div id="map-labels"></div>
-    <div id="loc-dot" hidden><div class="loc-acc"></div></div>
+    <div id="loc-dot" hidden><div class="loc-acc"></div><div class="loc-cone" hidden></div></div>
   </div>
 
   <!-- Tool rail: one button per tool down the right edge. Clicking a tool
        opens its controls to the left; clicking it again hides them. -->
   <div id="tool-rail">
+    <button class="rail-btn" data-mode="point" title="Latitude, longitude and elevation of a point, or of where you are">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/></svg>Point</button>
     <button class="rail-btn" data-mode="line" title="Elevation profile along a line you draw">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18"/><path d="M3 16l5-6 4 3 4-6 5 5"/></svg>Profile</button>
     <button class="rail-btn" data-mode="drain" title="Best drainage route between two points">
@@ -964,6 +977,7 @@
   <div id="result-card" hidden>
     <button class="card-toggle" id="result-toggle" title="Hide / show the details"><svg class="ico ico-only" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div id="result-title"></div>
+    <div id="point-info" hidden></div>
     <div id="profile-stats"></div>
     <div id="profile-chart-wrap">
       <svg id="profile-chart"></svg>
@@ -973,7 +987,7 @@
     <div class="depth-legend" id="water-legend" hidden><span>Shallow</span><div class="bar"></div><span id="depth-max-label">2 m+ deep</span></div>
   </div>
 
-  <button id="brand" class="corner-btn" title="Bohn Ag Consulting: open another file, file information">
+  <button id="brand" class="corner-btn" title="Bohn Ag Consulting: home, file information">
     <svg viewBox="0 0 44 44" width="42" height="42" aria-hidden="true">
       <text x="22" y="21" text-anchor="middle" font-size="12.5" font-weight="800" fill="currentColor">Bohn</text>
       <text x="22" y="33.5" text-anchor="middle" font-size="12.5" font-weight="800" fill="currentColor">Ag</text>
@@ -1092,14 +1106,13 @@
       <button data-c="black" title="Black"><span style="background:#111111"></span></button>
     </div>
   </div>
-  <!-- Logo menu: file name, open another file, file information -->
+  <!-- Logo menu: file name, home (start screen), file information -->
   <div id="info-card" class="corner-card" hidden>
     <div class="subtitle" id="file-subtitle"></div>
     <div class="detail-note" id="detail-note" hidden title="Large files are opened at lower detail so they fit in the phone's memory"></div>
-    <button class="btn primary" id="btn-open-new"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
-          <path d="M2 6.5A1.5 1.5 0 0 1 3.5 5h5.2l2 2h7.8A1.5 1.5 0 0 1 20 8.5V10H6.3a2 2 0 0 0-1.9 1.4L2 18.6z" fill="#E3A12F"/>
-          <path d="M4.4 11.5a1.5 1.5 0 0 1 1.4-1h15.3a1 1 0 0 1 .95 1.3l-2.25 7.1a1.5 1.5 0 0 1-1.43 1.05H3a1 1 0 0 1-.95-1.3z" fill="#FFC83D"/>
-        </svg>Open another file</button>
+    <button class="btn primary" id="btn-home"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3.5 11L12 4l8.5 7"/><path d="M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5"/>
+        </svg>Home</button>
     <div class="section"><div id="meta-lines"></div></div>
   </div>
 </div>
@@ -4104,24 +4117,79 @@ function lambertEN(lat, lon) {
   return { E: rho * Math.sin(th), N: rho0 - rho * Math.cos(th) };
 }
 
+// Map pixel -> latitude / longitude (degrees, GRS80), or null when the map's
+// projection isn't known. Inverse of lonLatToMap.
+function mapToLonLat(x, y, m) {
+  const pr = mapProjection(m);
+  if (!pr) return null;
+  const E = m.ox + x * m.px, N = m.oy - y * m.py;
+  const deg = 180 / Math.PI, a = 6378137, f = 1 / 298.257222101, e2 = f * (2 - f), e = Math.sqrt(e2);
+  if (pr.utm) {
+    // inverse transverse Mercator (Snyder)
+    const ep2 = e2 / (1 - e2), k0 = 0.9996;
+    const xx = E - 500000, yy = pr.south ? N - 10000000 : N;
+    const mu = yy / k0 / (a * (1 - e2 / 4 - 3 * e2 * e2 / 64 - 5 * e2 ** 3 / 256));
+    const e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+    const p1 = mu + (3 * e1 / 2 - 27 * e1 ** 3 / 32) * Math.sin(2 * mu) + (21 * e1 * e1 / 16 - 55 * e1 ** 4 / 32) * Math.sin(4 * mu)
+      + (151 * e1 ** 3 / 96) * Math.sin(6 * mu) + (1097 * e1 ** 4 / 512) * Math.sin(8 * mu);
+    const sp = Math.sin(p1), cp = Math.cos(p1), T = Math.tan(p1) ** 2, C = ep2 * cp * cp;
+    const Nn = a / Math.sqrt(1 - e2 * sp * sp), R = a * (1 - e2) / Math.pow(1 - e2 * sp * sp, 1.5), D = xx / (Nn * k0);
+    const lat = p1 - (Nn * Math.tan(p1) / R) * (D * D / 2 - (5 + 3 * T + 10 * C - 4 * C * C - 9 * ep2) * D ** 4 / 24
+      + (61 + 90 * T + 298 * C + 45 * T * T - 252 * ep2 - 3 * C * C) * D ** 6 / 720);
+    const dLon = (D - (1 + 2 * T + C) * D ** 3 / 6 + (5 - 2 * C + 28 * T - 3 * C * C + 8 * ep2 + 24 * T * T) * D ** 5 / 120) / cp;
+    return { lat: lat * deg, lon: pr.utm * 6 - 183 + dLon * deg };
+  }
+  // inverse Lambert conformal conic (Canada Atlas Lambert, see lambertEN)
+  const rad = Math.PI / 180;
+  const mf = (p) => Math.cos(p) / Math.sqrt(1 - e2 * Math.sin(p) ** 2);
+  const tf = (p) => Math.tan(Math.PI / 4 - p / 2) / Math.pow((1 - e * Math.sin(p)) / (1 + e * Math.sin(p)), e / 2);
+  const p1 = 49 * rad, p2 = 77 * rad;
+  const n = (Math.log(mf(p1)) - Math.log(mf(p2))) / (Math.log(tf(p1)) - Math.log(tf(p2)));
+  const F = mf(p1) / (n * Math.pow(tf(p1), n));
+  const rho0 = a * F * Math.pow(tf(p1), n);
+  const rho = Math.hypot(E, rho0 - N), t = Math.pow(rho / (a * F), 1 / n);
+  let phi = Math.PI / 2 - 2 * Math.atan(t);
+  for (let i = 0; i < 6; i++) {
+    const es = e * Math.sin(phi);
+    phi = Math.PI / 2 - 2 * Math.atan(t * Math.pow((1 - es) / (1 + es), e / 2));
+  }
+  return { lat: phi * deg, lon: -95 + Math.atan2(E, rho0 - N) / n * deg };
+}
+
 // ---- My location: a blue dot that follows the phone's GPS ----
-let locWatch = null, locFix = null;   // locFix: { x, y, acc } in map px / metres
+// locFix: { x, y (map px), acc (m), lat, lon, speed (m/s), heading (degrees from true north, or NaN) }
+let locWatch = null, locFix = null;
 function setLocating(on) {
   if (!on) {
     if (locWatch !== null) navigator.geolocation.clearWatch(locWatch);
     locWatch = null; locFix = null;
     $('btn-locate').classList.remove('active');
     updateLocDot();
+    onPointGpsChange();
     return;
   }
   if (!map || !navigator.geolocation) return;
   if (!mapProjection(map)) { showToast("This map's projection doesn't support location"); return; }
   $('btn-locate').classList.add('active');
-  let first = true;
+  let first = true, prev = null;
   locWatch = navigator.geolocation.watchPosition((pos) => {
-    const pt = map && lonLatToMap(pos.coords.latitude, pos.coords.longitude, map);
+    const c = pos.coords;
+    const pt = map && lonLatToMap(c.latitude, c.longitude, map);
     if (!pt) return;
-    locFix = { x: pt.x, y: pt.y, acc: pos.coords.accuracy };
+    // Speed and heading from the phone; when it gives none, from the last fix.
+    let speed = c.speed, heading = c.heading;
+    if (prev) {
+      const dN = (c.latitude - prev.lat) * 111320, dE = (c.longitude - prev.lon) * 111320 * Math.cos(c.latitude * Math.PI / 180);
+      const d = Math.hypot(dE, dN), dt = (pos.timestamp - prev.t) / 1000;
+      if (!(speed >= 0) && dt > 0) speed = d / dt;
+      if (!(heading >= 0) && d > 3) heading = (Math.atan2(dE, dN) * 180 / Math.PI + 360) % 360;
+    }
+    if (!prev || Math.hypot(c.latitude - prev.lat, c.longitude - prev.lon) > 2e-5 || pos.timestamp - prev.t > 10000) {
+      prev = { lat: c.latitude, lon: c.longitude, t: pos.timestamp };
+    }
+    locFix = { x: pt.x, y: pt.y, acc: c.accuracy, lat: c.latitude, lon: c.longitude,
+      speed: speed >= 0 ? speed : 0, heading: heading >= 0 ? heading : NaN };
+    if (profileMode === 'point') renderProfileChart();
     if (first) {
       first = false;
       const inside = pt.x >= 0 && pt.y >= 0 && pt.x <= map.W && pt.y <= map.H;
@@ -4136,6 +4204,7 @@ function setLocating(on) {
     setLocating(false);
     showToast(err.code === 1 ? 'Location is turned off for this app (Settings › Privacy › Location Services)' : 'Could not find your location');
   }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
+  onPointGpsChange();
 }
 
 // Move the view so map point (x, y) is in the middle of the uncovered screen.
@@ -4156,9 +4225,27 @@ function updateLocDot(cam) {
   dot.style.transform = `translate(${q.x.toFixed(1)}px, ${q.y.toFixed(1)}px)`;
   // accuracy ring (flat view only: its size varies across a tilted view)
   const r = settings.tilt3d ? 0 : Math.min(2000, locFix.acc / map.px * view.scale);
-  const ring = dot.firstElementChild;
+  const ring = dot.querySelector('.loc-acc');
   ring.style.width = ring.style.height = (2 * r).toFixed(1) + 'px';
   ring.hidden = r < 12;
+  // direction cone: longer the faster you go, gone when you stop
+  const cone = dot.querySelector('.loc-cone');
+  const moving = locFix.speed > 0.6 && locFix.heading === locFix.heading;
+  cone.hidden = !moving;
+  if (moving) {
+    // screen direction of travel: a point 20 m ahead, projected like the dot
+    // (so map rotation, grid north and the 3D tilt are all accounted for)
+    const h = locFix.heading * Math.PI / 180;
+    const ahead = lonLatToMap(locFix.lat + 20 * Math.cos(h) / 111320,
+      locFix.lon + 20 * Math.sin(h) / (111320 * Math.cos(locFix.lat * Math.PI / 180)), map);
+    const q1 = ahead && mapToScreen(ahead.x, ahead.y, cam);
+    if (!q1) cone.hidden = true;
+    else {
+      const len = Math.min(110, 26 + locFix.speed * 3.6 * 1.6);   // px; 26 at a walk, full by ~50 km/h
+      cone.style.width = cone.style.height = (2 * len).toFixed(0) + 'px';
+      cone.style.transform = `translate(-50%, -50%) rotate(${Math.atan2(q1.x - q.x, q.y - q1.y).toFixed(3)}rad)`;
+    }
+  }
 }
 
 let toastTimer = 0;
@@ -4198,7 +4285,7 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 25;
+const APP_VERSION = 26;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
@@ -4564,7 +4651,15 @@ document.querySelectorAll('#contour-color-toggle button').forEach((b) => b.addEv
 }));
 
 $('btn-reset').addEventListener('click', fitToViewport);
-$('btn-open-new').addEventListener('click', () => { setCornerCard(null); $('file-input').click(); });
+// Home: close the map and go back to the start screen (open, download, reopen)
+$('btn-home').addEventListener('click', () => {
+  setCornerCard(null);
+  teardownMap();
+  $('app').hidden = true;
+  $('start').hidden = false;
+  $('load-error').hidden = true;
+  $('load-progress').hidden = true;
+});
 
 
 // ---- Colour scales ----
@@ -5006,6 +5101,14 @@ function setupProfilePointDrag(circleEl, index) {
 function addProfilePoint(x, y) {
   if (!map) return;
   if (profileMode === 'drain' && profilePoints.length >= 2) return;
+  if (profileMode === 'point') {
+    if (pointGps()) return;   // showing where you are instead
+    profilePoints = [{ x, y }];   // each tap moves the point; the tool stays ready
+    renderProfileOverlay();
+    renderProfileChart();
+    updateProfileButtons();
+    return;
+  }
   if (profileMode === 'water') {
     if (profilePoints.length >= 1) return; // one pour point; drag it to move
     profilePoints.push({ x, y });
@@ -5062,7 +5165,7 @@ function clearProfile() {
 }
 
 function updateProfileButtons() {
-  $('btn-profile-draw').disabled = isOutlineMode() && areaClosed;
+  $('btn-profile-draw').disabled = (isOutlineMode() && areaClosed) || pointGps();
   updateRail();
   $('btn-profile-undo').disabled = profilePoints.length === 0;
   $('btn-profile-clear').disabled = profilePoints.length === 0;
@@ -5220,6 +5323,8 @@ function renderProfileChart() {
 }
 
 function renderToolResults() {
+  $('point-info').hidden = profileMode !== 'point';
+  if (profileMode === 'point') { renderPointInfo(); return; }
   if (profileMode === 'drain') { renderDrainageChart(); return; }
   if (profileMode === 'water') { renderWaterPanel(); return; }
   if (profileMode === 'area') { renderAreaStats(); return; }
@@ -5437,13 +5542,14 @@ const ICON = {
 };
 const ico = (name) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
 const DRAW_LABEL = {
-  line: ico('draw') + 'Draw line', drain: ico('pin') + 'Pick points', water: ico('drop') + 'Place water',
+  point: ico('pin') + 'Pick point', line: ico('draw') + 'Draw line', drain: ico('pin') + 'Pick points', water: ico('drop') + 'Place water',
   area: ico('draw') + 'Draw area', slope: ico('draw') + 'Draw field',
 };
 // Area and Slope both outline a closed boundary (click the first point to close).
 function isOutlineMode() { return profileMode === 'area' || profileMode === 'slope'; }
 // One-line prompts shown in the empty chart / results area
 const PROMPT = {
+  point: 'Tap the map for a point',
   line: 'Tap the map to draw a line',
   drain: 'Tap the wet spot, then the outlet',
   water: 'Tap the map where the water starts',
@@ -5849,7 +5955,8 @@ let mapLabels = [];   // [{x, y (map px), above, lines: [[text, cls], ...]}]
 function updateResultCard() {
   let show = false, title = '';
   if (map) {
-    if (profileMode === 'line') { show = profilePoints.length >= 2; title = 'Elevation profile'; }
+    if (profileMode === 'point') { show = pointGps() || profilePoints.length === 1; title = pointGps() ? 'My location' : 'Point'; }
+    else if (profileMode === 'line') { show = profilePoints.length >= 2; title = 'Elevation profile'; }
     else if (profileMode === 'drain') {
       show = profilePoints.length === 2;
       const names = { volume: 'least digging', short: 'shortest', low: 'follow low ground' };
@@ -5863,7 +5970,7 @@ function updateResultCard() {
   $('water-legend').hidden = !(profileMode === 'water' && water && water.stats.wetCells > 0);
 
   let prompt = '';
-  if (map && !profilePoints.length) prompt = PROMPT[profileMode];
+  if (map && !profilePoints.length && !pointGps()) prompt = PROMPT[profileMode];
   else if (isOutlineMode() && !areaClosed && profilePoints.length >= 3) prompt = 'Tap the first point to close';
   else if (profileMode === 'drain' && profilePoints.length === 1) prompt = 'Now tap the outlet';
   $('tool-prompt').textContent = prompt;
@@ -5891,7 +5998,9 @@ function buildMapLabels() {
   const L = [];
   if (!map) return L;
   const pts = profilePoints;
-  if (profileMode === 'area' && pts.length >= 2) {
+  if (profileMode === 'point' && pts.length === 1 && !pointGps() && pointElev.key === `${pts[0].x},${pts[0].y}` && pointElev.v === pointElev.v) {
+    L.push({ x: pts[0].x, y: pts[0].y, pts, lines: [[fmtElev(pointElev.v), 'b']] });
+  } else if (profileMode === 'area' && pts.length >= 2) {
     const m = areaMeasure(pts, areaClosed);
     if (areaClosed) {
       const c = polygonCentroid(pts);
@@ -6335,7 +6444,64 @@ $('btn-screenshot').addEventListener('click', () => { takeScreenshot().catch((e)
 
 // Each tool is ready to click as soon as it is opened - no extra "draw" step.
 function armProfileTool() {
-  if (!profilePanelEl.hidden && map && !profilePoints.length) setProfileDrawMode(true);
+  if (profilePanelEl.hidden || !map) return;
+  if (profileMode === 'point') setProfileDrawMode(!pointGps());   // tap again to move the point
+  else if (!profilePoints.length) setProfileDrawMode(true);
+}
+
+// ---- Point: latitude, longitude and elevation of a tapped point - or, while
+// the GPS is on, of where you are, with speed and heading. ----
+let pointElev = { key: '', v: NaN }, pointElevBusy = false;   // key: "gps" or "x,y"
+const pointGps = () => profileMode === 'point' && locWatch !== null;
+
+function onPointGpsChange() {
+  if (profileMode !== 'point') return;
+  if (pointGps()) profilePoints = [];
+  renderProfileOverlay();
+  renderProfileChart();
+  updateProfileButtons();
+  armProfileTool();
+}
+
+function fmtLatLon(lat, lon) {
+  return [`${Math.abs(lat).toFixed(5)}° ${lat >= 0 ? 'N' : 'S'}`, `${Math.abs(lon).toFixed(5)}° ${lon >= 0 ? 'E' : 'W'}`];
+}
+const COMPASS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+
+function renderPointInfo() {
+  $('profile-stats').innerHTML = '';
+  const gps = pointGps();
+  const p = gps ? locFix : profilePoints[0];
+  const el = $('point-info');
+  if (!p || !map) { el.innerHTML = gps ? '<span class="k">Waiting for GPS…</span>' : ''; return; }
+  const ll = gps ? { lat: p.lat, lon: p.lon } : mapToLonLat(p.x, p.y, map);
+  const inside = p.x >= 0 && p.y >= 0 && p.x < map.W && p.y < map.H;
+  const rows = [];
+  if (ll) {
+    const [la, lo] = fmtLatLon(ll.lat, ll.lon);
+    rows.push(['Latitude', la], ['Longitude', lo]);
+  } else {
+    rows.push(['Easting', (map.ox + p.x * map.px).toFixed(1)], ['Northing', (map.oy - p.y * map.py).toFixed(1)]);
+  }
+  const key = gps ? 'gps' : `${p.x},${p.y}`;
+  const ev = pointElev.key === key ? pointElev.v : NaN;
+  rows.push(['Elevation', !inside ? 'off the map' : ev === ev ? fmtElev(ev) : '…']);
+  if (gps) {
+    const kmh = p.speed * 3.6;
+    rows.push(['Speed', imperial() ? `${(kmh / 1.609344).toFixed(1)} mph` : `${kmh.toFixed(1)} km/h`]);
+    rows.push(['Heading', p.speed > 0.6 && p.heading === p.heading
+      ? `${Math.round(p.heading) % 360}° ${COMPASS[Math.round(p.heading / 45) % 8]}` : '—']);
+    rows.push(['Accuracy', '± ' + formatDist(p.acc)]);
+  }
+  el.innerHTML = rows.map(([k, v]) => `<span class="k">${k}</span><span class="v">${escapeHtml(v)}</span>`).join('');
+  // full-resolution elevation from the analysis worker, one request at a time
+  if (inside && !pointElevBusy && (gps || ev !== ev)) {
+    pointElevBusy = true;
+    callAnalysis('elev', { x: p.x, y: p.y }).then((v) => {
+      pointElev = { key, v };
+      if (profileMode === 'point') { renderPointInfo(); updateMapLabels(); }
+    }).catch(() => {}).finally(() => { pointElevBusy = false; });
+  }
 }
 
 // ---- Water flow ----
@@ -6607,9 +6773,9 @@ function setProfileMode(mode) {
   $('drain-params').hidden = mode !== 'drain';
   $('water-params').hidden = mode !== 'water';
   $('slope-style').hidden = mode !== 'slope';
-  $('btn-profile-undo').hidden = mode === 'water';   // only one point in water mode: Clear covers it
-  $('profile-chart-wrap').hidden = mode === 'water' || mode === 'area';
-  $('profile-hover-readout').hidden = mode === 'water' || mode === 'area';
+  $('btn-profile-undo').hidden = mode === 'water' || mode === 'point';   // only one point in water mode: Clear covers it
+  $('profile-chart-wrap').hidden = mode === 'water' || mode === 'area' || mode === 'point';
+  $('profile-hover-readout').hidden = mode === 'water' || mode === 'area' || mode === 'point';
   $('profile-chart-empty').textContent = PROMPT[mode];
   renderProfileOverlay();
   renderProfileChart();
@@ -6619,7 +6785,7 @@ function setProfileMode(mode) {
 }
 
 // ---- Tool rail ----
-const TOOL_TITLES = { line: 'Elevation profile', drain: 'Drainage', water: 'Water flow', area: 'Area', slope: 'Slope' };
+const TOOL_TITLES = { point: 'Point', line: 'Elevation profile', drain: 'Drainage', water: 'Water flow', area: 'Area', slope: 'Slope' };
 
 function setToolPanelOpen(open) {
   profilePanelEl.hidden = !open;
