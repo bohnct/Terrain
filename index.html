@@ -162,6 +162,7 @@
   .dl-label { font-size: 12px; font-weight: 700; color: var(--text-dim); margin: 4px 0 6px; }
   #dl-panel .seg { margin-bottom: 12px; }
   #dl-panel .seg button { padding: 11px 2px; font-size: 15px; }
+  #dl-panel .seg button:disabled { opacity: 0.35; cursor: default; }
   #dl-estimate { font-size: 13px; text-align: center; margin: 2px 0 14px; color: var(--text); }
   #dl-estimate .dim { color: var(--text-dim); }
   .dl-actions { display: flex; gap: 10px; }
@@ -566,6 +567,8 @@
   #btn-screenshot svg, #btn-tilt svg { display: block; }
   #btn-tilt { right: 112px; }
   #btn-locate svg { display: block; }
+  /* second tap: map locked on you (arrow filled in) */
+  #btn-locate.follow svg path { fill-opacity: 1; }
   #loc-dot {
     position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 4; pointer-events: none;
   }
@@ -839,7 +842,12 @@
     </div>
     <!-- Download my location: square size and detail, then fetched from the HRDEM mosaic -->
     <div id="dl-panel" hidden>
-      <div class="dl-label">Area (km²)</div>
+      <div class="dl-label">Type</div>
+      <div class="seg" id="dl-type">
+        <button data-v="dtm" title="Digital terrain model: bare ground, with trees and buildings removed">DTM &middot; ground</button>
+        <button data-v="dsm" title="Digital surface model: tops of crops, trees and buildings">DSM &middot; surface</button>
+      </div>
+      <div class="dl-label">Square size (km)</div>
       <div class="seg" id="dl-size">
         <button data-v="1">1</button><button data-v="2">2</button><button data-v="5">5</button>
         <button data-v="10">10</button><button data-v="15">15</button><button data-v="20">20</button>
@@ -4158,11 +4166,13 @@ function mapToLonLat(x, y, m) {
 
 // ---- My location: a blue dot that follows the phone's GPS ----
 // locFix: { x, y (map px), acc (m), lat, lon, speed (m/s), heading (degrees from true north, or NaN) }
-let locWatch = null, locFix = null;
+// locFollow: the map stays centred on you (zoom still works, panning doesn't)
+let locWatch = null, locFix = null, locFollow = false;
 function setLocating(on) {
   if (!on) {
     if (locWatch !== null) navigator.geolocation.clearWatch(locWatch);
     locWatch = null; locFix = null;
+    setFollow(false);
     $('btn-locate').classList.remove('active');
     updateLocDot();
     onPointGpsChange();
@@ -4171,6 +4181,7 @@ function setLocating(on) {
   if (!map || !navigator.geolocation) return;
   if (!mapProjection(map)) { showToast("This map's projection doesn't support location"); return; }
   $('btn-locate').classList.add('active');
+  $('btn-locate').title = 'Keep the map centred on me';
   let first = true, prev = null;
   locWatch = navigator.geolocation.watchPosition((pos) => {
     const c = pos.coords;
@@ -4199,6 +4210,7 @@ function setLocating(on) {
         showToast(`You're ${formatDist(Math.hypot(dx, dy))} outside this map`);
       }
     }
+    if (locFollow) applyView();   // re-centres on the new fix
     updateLocDot();
   }, (err) => {
     setLocating(false);
@@ -4209,11 +4221,27 @@ function setLocating(on) {
 
 // Move the view so map point (x, y) is in the middle of the uncovered screen.
 function centreOn(x, y) {
+  shiftViewTo(x, y);
+  applyView();
+}
+function shiftViewTo(x, y) {
   const ins = fitInsets();
   const q = viewToScreen(x, y);
   view.originX += viewport.clientWidth / 2 - q.x;
   view.originY += ins.top + (viewport.clientHeight - ins.top - ins.bottom) / 2 - q.y;
-  applyView();
+}
+
+// GPS button: off -> on (blue dot) -> locked on you -> off
+function setFollow(on) {
+  locFollow = on;
+  $('btn-locate').classList.toggle('follow', on);
+  $('btn-locate').title = on ? 'Stop following me' : (locWatch !== null ? 'Keep the map centred on me' : 'Show where I am');
+  if (on && locFix) centreOn(locFix.x, locFix.y);
+}
+function onLocateClick() {
+  if (locWatch === null) setLocating(true);
+  else if (!locFollow) setFollow(true);
+  else setLocating(false);
 }
 
 function updateLocDot(cam) {
@@ -4277,6 +4305,9 @@ let dataMin = 0, dataMax = 1;
 let rangeUserSet = false;   // colour range chosen by the user (don't auto-fit over it)
 
 function applyView() {
+  // Locked on you: every pan / zoom / fix ends here, so put you back in the
+  // middle - dragging can't move the map away, and zoom happens about you.
+  if (locFollow && locFix) shiftViewTo(locFix.x, locFix.y);
   // (when tilted, render3D re-places the overlay and labels each frame)
   overlayG.setAttribute('transform', settings.tilt3d ? '' : `translate(${view.originX} ${view.originY}) rotate(${view.rot * 180 / Math.PI}) scale(${view.scale})`);
   if (!settings.tilt3d) { updateProfileMarkerScale(); positionMapLabels(); updateLocDot(); }
@@ -4285,7 +4316,7 @@ function applyView() {
 }
 
 // Shown on the start screen and in File information. Keep in step with CACHE in sw.js.
-const APP_VERSION = 26;
+const APP_VERSION = 29;
 $('start-version').textContent = 'Version ' + APP_VERSION;
 
 // Phone layout: the tool tab bar and bottom sheets (same query as the phone CSS).
@@ -4876,7 +4907,7 @@ function setTilt(on) {
   if (!on) positionMapLabels();
 }
 $('btn-tilt').addEventListener('click', () => { if (map) setTilt(!settings.tilt3d); });
-$('btn-locate').addEventListener('click', () => setLocating(locWatch === null));
+$('btn-locate').addEventListener('click', onLocateClick);
 $('tilt-slider').addEventListener('input', (e) => {
   settings.tiltDeg = +e.target.value;
   $('tilt-val').textContent = e.target.value + '°';
@@ -6972,18 +7003,22 @@ if (window.indexedDB) {
 // same data Clip Zip Ship serves, but returned straight away at the chosen
 // resolution, in Canada Atlas Lambert). ----
 const HRDEM_WCS = 'https://datacube.services.geo.ca/wrapper/ogc/elevation-hrdem-mosaic';
-const dlChoice = { size: 5, res: 1 };   // km², metres per pixel
+const dlChoice = { type: 'dtm', size: 2, res: 1 };   // ground or surface model, side of the square in km, metres per pixel
 let dlAbort = null;
 try {
   const saved = JSON.parse(localStorage.getItem('terrainDownload') || 'null');
   if (saved) Object.assign(dlChoice, saved);
 } catch (e) { /* storage may be blocked */ }
 
+const DL_SEGS = [['dl-type', 'type'], ['dl-size', 'size'], ['dl-res', 'res']];
+
 // Side of the square in pixels, and the uncompressed float32 GeoTIFF size.
 function dlPlan() {
-  const sidePx = Math.round(Math.sqrt(dlChoice.size) * 1000 / dlChoice.res);
+  const sidePx = Math.round(dlChoice.size * 1000 / dlChoice.res);
   return { sidePx, sideM: sidePx * dlChoice.res, bytes: sidePx * sidePx * 4 + 2000 };
 }
+// A square is offered at a resolution only if the phone could open it at full detail.
+const dlFits = (sizeKm, res) => (sizeKm * 1000 / res) ** 2 <= TOUCH_MAX_PIXELS;
 // Effective download speed (server time included), learned from the last downloads;
 // until then a typical mobile connection (iPhones don't report their speed).
 function dlSpeedMbps() {
@@ -7004,20 +7039,29 @@ function formatMB(bytes) {
 }
 
 function updateDlPanel() {
-  for (const [id, key] of [['dl-size', 'size'], ['dl-res', 'res']]) {
-    for (const b of $(id).children) b.classList.toggle('active', +b.dataset.v === dlChoice[key]);
+  // too fine for this size: grey it out, and step down to the finest that fits
+  const resBtns = [...$('dl-res').children];
+  for (const b of resBtns) {
+    b.disabled = !dlFits(dlChoice.size, +b.dataset.v);
+    b.title = b.disabled ? 'Too large for the phone at this size' : '';
+  }
+  if (!dlFits(dlChoice.size, dlChoice.res)) {
+    const ok = resBtns.map((b) => +b.dataset.v).filter((r) => dlFits(dlChoice.size, r));
+    dlChoice.res = ok.length ? Math.min(...ok) : 5;
+  }
+  for (const [id, key] of DL_SEGS) {
+    for (const b of $(id).children) b.classList.toggle('active', b.dataset.v === String(dlChoice[key]));
   }
   const p = dlPlan();
   const secs = 3 + p.bytes * 8 / (dlSpeedMbps() * 1e6);
-  const km = (p.sideM / 1000).toFixed(p.sideM < 10000 ? 1 : 0);
   $('dl-estimate').innerHTML = `<b>${formatMB(p.bytes)}</b> &middot; about ${formatDuration(secs)}`
-    + `<br><span class="dim">${km} &times; ${km} km &middot; ${p.sidePx.toLocaleString()} &times; ${p.sidePx.toLocaleString()} px</span>`;
+    + `<br><span class="dim">${Math.round(p.sideM ** 2 / M2_PER_ACRE).toLocaleString()} acres &middot; ${p.sidePx.toLocaleString()} &times; ${p.sidePx.toLocaleString()} px</span>`;
 }
-for (const [id, key] of [['dl-size', 'size'], ['dl-res', 'res']]) {
+for (const [id, key] of DL_SEGS) {
   $(id).addEventListener('click', (e) => {
     const b = e.target.closest('button');
     if (!b || dlAbort) return;
-    dlChoice[key] = +b.dataset.v;
+    dlChoice[key] = key === 'type' ? b.dataset.v : +b.dataset.v;
     try { localStorage.setItem('terrainDownload', JSON.stringify(dlChoice)); } catch (err) { /* storage may be blocked */ }
     updateDlPanel();
   });
@@ -7063,7 +7107,7 @@ $('dl-go').addEventListener('click', async () => {
     const x0 = Math.round(E / res - plan.sidePx / 2) * res, y0 = Math.round(N / res - plan.sidePx / 2) * res;
     // WCS 1.1 bounding boxes run between the outer pixel centres, so half a pixel in
     const crs = 'urn:ogc:def:crs:EPSG::3979', h = res / 2;
-    const url = `${HRDEM_WCS}?service=WCS&version=1.1.1&request=GetCoverage&identifier=dtm&format=image/geotiff`
+    const url = `${HRDEM_WCS}?service=WCS&version=1.1.1&request=GetCoverage&identifier=${dlChoice.type}&format=image/geotiff`
       + `&BoundingBox=${x0 + h},${y0 + h},${x0 + plan.sideM - h},${y0 + plan.sideM - h},${crs}`
       + `&GridBaseCRS=${crs}&GridOffsets=${res},-${res}`;
 
@@ -7102,7 +7146,7 @@ $('dl-go').addEventListener('click', async () => {
     console.log(`[terrain] downloaded ${formatMB(got)} in ${((performance.now() - t0) / 1000).toFixed(1)} s`);
 
     const ns = lat >= 0 ? 'N' : 'S', ew = lon >= 0 ? 'E' : 'W';
-    const name = `HRDEM_DTM_${Math.abs(lat).toFixed(4)}${ns}_${Math.abs(lon).toFixed(4)}${ew}_${dlChoice.size}km2_${res}m.tif`;
+    const name = `HRDEM_${dlChoice.type.toUpperCase()}_${Math.abs(lat).toFixed(4)}${ns}_${Math.abs(lon).toFixed(4)}${ew}_${dlChoice.size}km_${res}m.tif`;
     dlAbort = null;
     showDlPanel(false);
     await loadFiles([new File([blob], name, { type: 'image/tiff' })],
