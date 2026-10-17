@@ -7,7 +7,12 @@ Bohn Ag Consulting. An installable phone/tablet version of the Terrain Analysis 
 2. Tap **Share** → **Add to Home Screen** → **Add**.
 3. Open **Terrain** from the home screen. Once it has opened, it works offline.
 
-Elevation files (`.tif`) are opened from the Files app. Nothing is uploaded.
+Elevation files (`.tif`, or a `.zip` containing them) are opened from the Files app. Nothing is uploaded.
+
+### Files from Google Drive
+The Google Drive app treats a `.tif` as a picture: **Download** saves it to Photos, which ruins it. Instead:
+- In Drive, tap **⋯** on the file → **Open in** → **Save to Files**, then open it from Files; or
+- keep the elevation files **zipped** in Drive (Clip Zip Ship downloads already are). A `.zip` stays a normal file, and the app opens the `.tif` inside it directly.
 
 ## Good to know
 - **Reopen**: the last map is kept on the phone; the start screen has a one-tap button to reopen it.
